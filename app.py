@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, Response, render_template
 import cohere
 import chromadb
 import uuid
-from docx import Document
+from docx import Document  # Reads .docx files
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import json
 import logging
