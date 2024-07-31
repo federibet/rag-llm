@@ -1,0 +1,6 @@
+# Ignore test files and directories
+report.ipynb
+
+# Ignore any additional files or folders you don't want to include
+.git/
+.ipynb_checkpoints
