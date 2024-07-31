@@ -2,7 +2,10 @@
 report.ipynb
 RAG_API.postman_collection.json
 prompts.md
+LICENSE
+README.md
+.gitignore
 
 # Ignore any additional files or folders you don't want to include
 .git/
-.ipynb_checkpoints
+.ipynb_checkpoints/
