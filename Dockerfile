@@ -7,6 +7,11 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+# Install system dependencies (if needed, uncomment the following lines)
+# RUN apt-get update && apt-get install -y \
+#     libgomp1 \
+#     && rm -rf /var/lib/apt/lists/*
+
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -15,7 +20,6 @@ EXPOSE 5000
 
 # Define environment variable
 ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
 
-# Run app.py when the container launches
-CMD ["flask", "run"]
+# Run flask app when the container launches
+CMD ["flask", "run", "--host=0.0.0.0"]

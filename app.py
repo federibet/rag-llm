@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify, Response, render_template
+from flask import Flask, request, jsonify, Response
 import cohere
 import chromadb
 import uuid
-from docx import Document  # Reads .docx files
+from docx import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import json
 import logging
@@ -14,7 +14,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 # Initialize Cohere
-cohere_api_key = 'znMajXo63oZ1RCuBXBhFNhm6iW7toDPbjxBJTiSg'  # Replace with your Cohere API key
+cohere_api_key = 'znMajXo63oZ1RCuBXBhFNhm6iW7toDPbjxBJTiSg'
 co = cohere.Client(cohere_api_key)
 
 # Initialize ChromaDB Client
@@ -51,21 +51,22 @@ try:
 except Exception as e:
     logging.error(f"Error processing document: {e}")
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
         # Get the user's name and question from the request
-        user_name = request.form.get('user_name')
-        user_question = request.form.get('question')
+        user_name = request.json.get('user_name')
+        user_question = request.json.get('question')
 
         # Check if the answer is already cached
         if user_question in answer_cache:
             cached_answer = answer_cache[user_question]
-            return render_template('index.html', answer=cached_answer)
+            response_data = {
+                'user_name': user_name,
+                'question': user_question,
+                'answer': cached_answer
+            }
+            return Response(json.dumps(response_data, ensure_ascii=False), mimetype='application/json')
 
         # Step 1: Retrieve the most relevant chunk using Chroma
         question_embedding = co.embed(texts=[user_question], model='large').embeddings[0]  # Get the embedding for the question
@@ -100,13 +101,22 @@ def ask():
         # Cache the generated answer
         answer_cache[user_question] = final_answer
 
-        return render_template('index.html', answer=final_answer)
+        # Create the response data
+        response_data = {
+            'user_name': user_name,
+            'question': user_question,
+            'answer': final_answer
+        }
+
+        # Return the generated answer along with the user's name, ensuring no special character escaping
+        return Response(json.dumps(response_data, ensure_ascii=False), mimetype='application/json')
     except Exception as e:
         logging.error(f"Error in ask endpoint: {e}")
         return jsonify({'error': str(e)}), 500
 
+
 if __name__ == '__main__':
     try:
-        app.run(debug=True, host='0.0.0.0')
+        app.run(debug=True)
     except Exception as e:
         logging.error(f"Error starting Flask app: {e}")
