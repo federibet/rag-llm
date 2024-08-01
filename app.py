@@ -14,7 +14,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 # Initialize Cohere
-cohere_api_key = 'znMajXo63oZ1RCuBXBhFNhm6iW7toDPbjxBJTiSg'
+cohere_api_key = 'insert_your_key'
 co = cohere.Client(cohere_api_key)
 
 # Initialize ChromaDB Client
