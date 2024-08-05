@@ -38,7 +38,9 @@ The `requirements.txt` file includes the following packages:
 - `emoji==2.12.1`
 - `Flask==3.0.3`
 - `langchain==0.2.11`
+- `langdetect==1.0.9`
 - `python_docx==1.1.2`
+- `Requests==2.32.3`
 
 4. Add your Cohere API key in `app.py`:
 
@@ -102,45 +104,39 @@ The following prompt is used to generate answers based on the document context a
 
 ```
 Contexto: {most_relevant_chunk}
-Pregunta: {user_question}
-Responde en español y en tercera persona en una oración.
-```
-
-### Prompt for Generating Emojis
-The following prompt is used to generate emojis that represent the answer:
-
-```
-Answer: {first_sentence}
-Add two or three emojis that represent this answer:
+Pregunta: {user_question_translated}
+Respuesta en tercera persona y en una oración, añadiendo (después del punto final) dos emojis que representen esta respuesta:
 ```
 
 ### Example Usage in Code
 
-Here is how the prompts are used in the `app.py` script:
+Here is how the prompt is used in the `app.py` script:
 
 ```python
-# Prompt for generating the answer
-prompt = f"Contexto: {most_relevant_chunk}\nPregunta: {user_question}\nResponde en español y en tercera persona en una oración."
+# Create a prompt for the LLM
+combined_prompt = f"Contexto: {most_relevant_chunk}\nPregunta: {user_question_translated}\nRespuesta en tercera persona y en una oración, añadiendo (después del punto final) dos emojis que representen esta respuesta:"
 
-# Generate the answer using Cohere
-response = co.generate(prompt=prompt, model='command', max_tokens=150)
+# Use the Cohere LLM to get an answer with emojis
+response = co.generate(prompt=combined_prompt, model='command', max_tokens=160)
+logging.debug(f"Response from Cohere LLM: {response}")
+
 generated_answer = response.generations[0].text.strip()
 
-# Extract the first sentence of the generated answer
+# Extract only the first sentence from the generated answer
 first_sentence = generated_answer.split('.')[0] + '.'
 
-# Prompt for generating emojis
-emoji_prompt = f"Answer: {first_sentence}\nAdd two or three emojis that represent this answer:"
-
-# Generate emojis using Cohere
-emoji_response = co.generate(prompt=emoji_prompt, model='command', max_tokens=10)
-emoji_text = emoji_response.generations[0].text.strip()
-
-# Filter to keep only emojis
-emojis = ''.join([char for char in emoji_text if emoji.is_emoji(char)])
+# Filter to keep only emojis from the generated answer
+emojis = ''.join([char for char in generated_answer if emoji.is_emoji(char)])
 
 # Append emojis to the answer
 final_answer = first_sentence + ' ' + emojis
+```
+
+## Supported Languages
+The supported languages are defined in the main script as a list:
+
+```python
+SUPPORTED_LANGUAGES = ['es', 'en', 'pt']
 ```
 
 ## License
