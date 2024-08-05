@@ -12,13 +12,11 @@ from langdetect import detect, detect_langs
 
 app = Flask(__name__)
 
-########################## Agregar que si no es uno de los tres idiomas, que use español
-
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # Initialize Cohere
-cohere_api_key = 'insert_your_key'  # Replace with your Cohere API key
+cohere_api_key = 'insert_key_here'  # Replace with your Cohere API key
 co = cohere.Client(cohere_api_key)
 
 # Initialize ChromaDB Client
@@ -28,13 +26,17 @@ collection = chroma_client.get_or_create_collection(name="document_embeddings")
 # Cache to store answers to questions
 answer_cache = {}
 
+SUPPORTED_LANGUAGES = ['es', 'en', 'pt']
+
 # Function to read the entire document from a DOCX file and detect its language
 def read_document_from_docx(file_path):
     doc = Document(file_path)
     content = '\n\n'.join([para.text.strip() for para in doc.paragraphs if para.text.strip()])
     detected_languages = detect_langs(content)
     # Assuming the first detected language is the main language of the document
-    main_language = detected_languages[0].lang if detected_languages else 'en'
+    main_language = detected_languages[0].lang if detected_languages else 'es'
+    if main_language not in SUPPORTED_LANGUAGES:
+        main_language = 'es'
     return content, main_language
 
 # Read and process the document
@@ -83,6 +85,8 @@ def ask():
 
         # Detect the language of the user's question
         detected_question_language = detect(user_question)
+        if detected_question_language not in SUPPORTED_LANGUAGES:
+            detected_question_language = 'es'
         logging.info(f"Detected question language: {detected_question_language}")
 
         # Detect the language of the document
@@ -107,7 +111,7 @@ def ask():
             }
             return Response(json.dumps(response_data, ensure_ascii=False), mimetype='application/json')
 
-        # Step 1: Retrieve the most relevant chunk using Chroma
+        # Retrieve the most relevant chunk using Chroma
         question_embedding = co.embed(texts=[user_question_translated], model='large').embeddings[0]
         results = collection.query(query_embeddings=[question_embedding], n_results=1)
 
@@ -120,7 +124,7 @@ def ask():
             logging.error("No relevant chunk found for the detected language.")
             return jsonify({'error': 'No relevant chunk found for the detected language.'}), 500
 
-        # Combine steps 2 and 4 into a single prompt
+        # Create a prompt for the LLM
         combined_prompt = f"Contexto: {most_relevant_chunk}\nPregunta: {user_question_translated}\nRespuesta en tercera persona y en una oración, añadiendo (después del punto final) dos emojis que representen esta respuesta:"
 
         # Use the Cohere LLM to get an answer with emojis
