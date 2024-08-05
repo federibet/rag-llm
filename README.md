@@ -42,10 +42,10 @@ The `requirements.txt` file includes the following packages:
 - `python_docx==1.1.2`
 - `Requests==2.32.3`
 
-4. Add your Cohere API key in `app.py`:
+4. Add your Cohere API key in `config.py`:
 
    ```python
-   cohere_api_key = 'your_cohere_api_key_here'
+   COHERE_API_KEY = os.getenv('COHERE_API_KEY', 'your_cohere_api_key')
    ```
 
 ### Running with Docker
@@ -64,7 +64,12 @@ The `requirements.txt` file includes the following packages:
 
 ## Usage
 
-1. Place your DOCX document in the project directory and update the `file_path` variable in `app.py` with your document's filename.
+1. Place your DOCX document path in `config.py` along with the languages to work with (in this case, Spanish, English and Portuguese):
+
+   ```python
+   DOCUMENT_FILE_PATH = os.getenv('DOCUMENT_FILE_PATH', 'your_file.docx')
+   SUPPORTED_LANGUAGES = ['es', 'en', 'pt']
+   ```
 
 2. Run the Flask application:
 
@@ -133,7 +138,7 @@ final_answer = first_sentence + ' ' + emojis
 ```
 
 ## Supported Languages
-The supported languages are defined in the main script as a list:
+The supported languages are defined in `config.py` as a list:
 
 ```python
 SUPPORTED_LANGUAGES = ['es', 'en', 'pt']
