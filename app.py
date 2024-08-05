@@ -9,6 +9,7 @@ import logging
 import emoji
 import requests
 from langdetect import detect, detect_langs
+import config
 
 app = Flask(__name__)
 
@@ -16,8 +17,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 # Initialize Cohere
-cohere_api_key = 'insert_key_here'  # Replace with your Cohere API key
-co = cohere.Client(cohere_api_key)
+co = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize ChromaDB Client
 chroma_client = chromadb.Client()
@@ -26,8 +26,6 @@ collection = chroma_client.get_or_create_collection(name="document_embeddings")
 # Cache to store answers to questions
 answer_cache = {}
 
-SUPPORTED_LANGUAGES = ['es', 'en', 'pt']
-
 # Function to read the entire document from a DOCX file and detect its language
 def read_document_from_docx(file_path):
     doc = Document(file_path)
@@ -35,7 +33,7 @@ def read_document_from_docx(file_path):
     detected_languages = detect_langs(content)
     # Assuming the first detected language is the main language of the document
     main_language = detected_languages[0].lang if detected_languages else 'es'
-    if main_language not in SUPPORTED_LANGUAGES:
+    if main_language not in config.SUPPORTED_LANGUAGES:
         main_language = 'es'
     return content, main_language
 
@@ -60,9 +58,8 @@ def process_document(file_path):
             logging.error(f"Error getting embedding: {e}")
 
 # Initialize the document processing
-file_path = 'documento.docx'  # Update with your DOCX file path
 try:
-    process_document(file_path)
+    process_document(config.DOCUMENT_FILE_PATH)
 except Exception as e:
     logging.error(f"Error processing document: {e}")
 
@@ -85,12 +82,12 @@ def ask():
 
         # Detect the language of the user's question
         detected_question_language = detect(user_question)
-        if detected_question_language not in SUPPORTED_LANGUAGES:
+        if detected_question_language not in config.SUPPORTED_LANGUAGES:
             detected_question_language = 'es'
         logging.info(f"Detected question language: {detected_question_language}")
 
         # Detect the language of the document
-        document_content, detected_document_language = read_document_from_docx(file_path)
+        document_content, detected_document_language = read_document_from_docx(config.DOCUMENT_FILE_PATH)
         logging.info(f"Detected document language: {detected_document_language}")
 
         # Translate the question to the document's language for processing if necessary
@@ -166,11 +163,11 @@ def ask():
 if __name__ == '__main__':
     try:
         # Detect the document's language during initialization
-        document_content, document_language = read_document_from_docx(file_path)
+        document_content, document_language = read_document_from_docx(config.DOCUMENT_FILE_PATH)
         logging.info(f"Document language detected during initialization: {document_language}")
 
         # Process the document
-        process_document(file_path)
+        process_document(config.DOCUMENT_FILE_PATH)
 
         app.run(debug=True)
     except Exception as e:
