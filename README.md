@@ -1,12 +1,12 @@
 # Cohere QA Flask Application
 
-This project is a Flask web application that processes a document, stores its chunks in ChromaDB, and uses Cohere's language model to answer user questions. The answers are generated in Spanish and enhanced with relevant emojis.
+This project is a Flask web application that processes a document, stores its chunks in ChromaDB, and uses Cohere's language model to answer user questions. The answers are generated in the question's language and enhanced with relevant emojis.
 
 ## Features
 
 - Read and process a DOCX document.
 - Store document chunks in ChromaDB with embeddings.
-- Answer user questions in Spanish, using the most relevant document chunk.
+- Answer user questions using the most relevant document chunk.
 - Append relevant emojis to the answers.
 
 ## Setup
